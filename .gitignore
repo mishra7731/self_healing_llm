@@ -8,11 +8,7 @@ __pycache__/
 # Results and reports
 results/
 
-# Patch modules (not ready yet)
-patches/
-
-# Unused config
-config/exp.yaml
+patches/output_patch.py
 
 # System
 .DS_Store

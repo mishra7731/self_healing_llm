@@ -1,0 +1,25 @@
+---
+system:
+  verbose: 0
+  narrow_output: false
+
+run:
+  generations: 1
+  deprefix: true
+
+plugins:
+  target_type: openai.OpenAICompatible
+  target_name: mistral
+  probe_spec: dan.Ablation_Dan_11_0
+  detector_spec: auto
+  extended_detectors: false
+  generators:
+    openai:
+      OpenAICompatible:
+        uri: http://127.0.0.1:11434/v1
+        api_key: ollama
+        max_tokens: 100
+        timeout: 120
+
+reporting:
+  report_prefix: /uufs/chpc.utah.edu/common/home/u1457424/llm_self_healing/results/garak_reports/mistral_baseline

@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Results and reports
+results/
+
+# Patch modules (not ready yet)
+patches/
+
+# Unused config
+config/exp.yaml
+
+# System
+.DS_Store
+slurm-*.out-*
+slurm-*.err-*

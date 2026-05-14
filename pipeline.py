@@ -211,6 +211,10 @@ def run_demo(args) -> None:
         with open(args.config) as f:
             cfg = yaml.safe_load(f)
         logger.info("Loaded config from %s", args.config)
+        
+    if args.disable_prompt_block:
+        cfg["patches"]["prompt_level"]["injection_detection"]["enabled"] = False
+        logger.info("Injection detection DISABLED — prompts will reach model (output patch demo)")
  
     prompt_patch = build_prompt_patch(cfg)
     output_patch = build_output_patch(cfg)
@@ -542,6 +546,8 @@ def parse_args() -> argparse.Namespace:
                         help="[probe] Path to experiment YAML config file")
     parser.add_argument("--no-ablation", action="store_true",
                         help="[probe] Disable ablation study; run single baseline->patched comparison")
+    parser.add_argument("--disable-prompt-block", action="store_true",
+                        help="[demo] Disable injection blocking so prompts reach the model (shows output patch)")
     return parser.parse_args()    
 
 def main() -> None:

@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import copy
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -397,11 +398,20 @@ def get_patch_config_overrides(cfg: dict, prompt_enabled: bool, output_enabled: 
     modified["patches"]["output_level"]["enabled"] = output_enabled
     return modified
  
- 
-def run_probe_stage(runner, model_key: str, patch_label: str):
-    """Run the PROBE stage: invoke Garak and collect vulnerability results."""
-    logger.info("[PROBE] Running Garak | model=%s | config=%s", model_key, patch_label)
-    return runner.run(model_key=model_key, patch_label=patch_label)
+def _get_system_prompt(cfg: dict) -> str:
+    """Extract the guardrail system prompt from config if enabled."""
+    guardrail_cfg = cfg.get("patches", {}).get("prompt_level", {}).get(
+        "system_prompt_guardrail", {}
+    )
+    if guardrail_cfg.get("enabled", False):
+        return guardrail_cfg.get("guardrail_text", "")
+    return ""
+
+def run_probe_stage(runner, model_key: str, patch_label: str, system_prompt: str = ""):
+    logger.info("[PROBE] Running Garak | model=%s | patch=%s | guardrail=%s",
+                model_key, patch_label, "YES" if system_prompt else "NO")
+    return runner.run(model_key=model_key, patch_label=patch_label,
+                      system_prompt=system_prompt)
  
  
 def run_patch_stage(cfg: dict) -> tuple:
@@ -415,12 +425,12 @@ def run_patch_stage(cfg: dict) -> tuple:
     prompt_patch = build_prompt_patch(cfg)
     output_patch = build_output_patch(cfg)
     return prompt_patch, output_patch
- 
- 
-def run_verify_stage(runner, model_key: str, patch_label: str):
-    """Run the VERIFY stage: re-probe the model after patches are applied."""
-    logger.info("[VERIFY] Re-running Garak with patches active | model=%s", model_key)
-    return runner.run(model_key=model_key, patch_label=patch_label)
+
+
+def run_verify_stage(runner, model_key: str, patch_label: str, system_prompt: str = ""):
+    logger.info("[VERIFY] Re-running Garak with patches | model=%s", model_key)
+    return runner.run(model_key=model_key, patch_label=patch_label,
+                      system_prompt=system_prompt)
  
  
 def run_pipeline(cfg: dict, model_key: str) -> list:
@@ -446,6 +456,7 @@ def run_pipeline(cfg: dict, model_key: str) -> list:
     run_ablation = ablation_cfg.get("run", False)
  
     runner = GarakRunner(cfg, report_dir=report_dir)
+    guardrail_text = _get_system_prompt(cfg)
     comparisons = []
  
     if run_ablation:
@@ -464,20 +475,25 @@ def run_pipeline(cfg: dict, model_key: str) -> list:
             logger.info("--- Ablation: %s ---", name)
             modified_cfg = get_patch_config_overrides(cfg, prompt_on, output_on)
             run_patch_stage(modified_cfg)
-            patched = run_probe_stage(runner, model_key, name)
+            sp = guardrail_text if prompt_on else ""
+            patched = run_probe_stage(runner, model_key, name, system_prompt=sp)
+            #patched = run_probe_stage(runner, model_key, name)
             comparison = compare_results(baseline, patched)
             comparisons.append(comparison)
             print_summary(comparison)
  
     else:
+        guardrail_text = _get_system_prompt(cfg)
+
         logger.info("--- Stage 1: Baseline probe (no patches) ---")
-        baseline = run_probe_stage(runner, model_key, "baseline")
- 
+        baseline = run_probe_stage(runner, model_key, "baseline", system_prompt="")
+
         logger.info("--- Stage 2: Patch initialisation ---")
         run_patch_stage(cfg)
- 
+
         logger.info("--- Stage 3: Verify (patches active) ---")
-        patched = run_verify_stage(runner, model_key, "patched")
+        patched = run_verify_stage(runner, model_key, "patched",
+                                   system_prompt=guardrail_text)
  
         comparison = compare_results(baseline, patched)
         comparisons.append(comparison)

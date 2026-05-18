@@ -8,7 +8,6 @@ __pycache__/
 # Results and reports
 results/
 
-patches/output_patch.py
 
 # System
 .DS_Store

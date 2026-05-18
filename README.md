@@ -18,7 +18,7 @@ The system supports two target models (Llama 3.2 and Mistral 7B via Ollama) and 
 
 ## Architecture
 The system supports two operational modes:
-Probe mode — fully automated probe → patch → verify cycle via pipeline.py:
+Probe mode: fully automated probe → patch → verify cycle via pipeline.py:
 
 
 ```
@@ -31,8 +31,8 @@ pipeline.py  →  probe.py (GarakRunner)  →  Garak  →  Ollama (LLM)
                      └── parses JSONL report → ProbeResult → comparison
 
 ```
+Demo mode: qualitative before/after demonstration via the full Python patch stack:
 ```
-Demo mode — qualitative before/after demonstration via the full Python patch stack:
 Jailbreak prompt (from hitlog)
       │
       ▼

@@ -17,11 +17,11 @@ The system supports two target models (Llama 3.2 and Mistral 7B via Ollama) and 
 ---
 
 ## Architecture
+The system supports two operational modes:
+Probe mode — fully automated probe → patch → verify cycle via pipeline.py:
 
 
 ```
-The system supports two operational modes:
-Probe mode — fully automated probe → patch → verify cycle via pipeline.py:
 
 experiment.yaml
       │
@@ -118,31 +118,31 @@ bash start_ollama.sh
 ## Running the Pipeline
 
 Probe mode > automated probe → patch → verify
-# Single model, no ablation (fastest)
+### Single model, no ablation (fastest)
 ```
 python pipeline.py --mode probe --config config/experiment.yaml --model llama --no-ablation
 python pipeline.py --mode probe --config config/experiment.yaml --model mistral --no-ablation
 ```
-# Both models with full ablation study
+### Both models with full ablation study
 ```
 python pipeline.py --mode probe --config config/experiment.yaml
 ```
 
 Demo mode — qualitative before/after examples
-# Show prompt-level patch (injection detection blocks prompt before model sees it)
+### Show prompt-level patch (injection detection blocks prompt before model sees it)
 ```
 python pipeline.py --mode demo \
   --hitlog results/garak_reports/llama3_2_baseline_*.hitlog.jsonl \
   --model llama3.2 --num-prompts 5
 ```
-# Show output-level patch (bypass injection block to demonstrate output filtering)
+### Show output-level patch (bypass injection block to demonstrate output filtering)
 ```
 python pipeline.py --mode demo \
   --hitlog results/garak_reports/mistral_baseline_*.hitlog.jsonl \
   --model mistral --num-prompts 5 --disable-prompt-block
 ```
 
-# Run Garak directly with individual config files
+### Run Garak directly with individual config files
 ```bash
 python -m garak --config config/garak_llama_baseline.yaml
 python -m garak --config config/garak_llama_patched.yaml
